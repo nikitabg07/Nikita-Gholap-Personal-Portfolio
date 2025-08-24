@@ -1,0 +1,62 @@
+# Handle client-side routing
+/*    /index.html   200
+
+# Service Worker - bypass all redirects and caching
+/service-worker.js    /service-worker.js    200
+  Service-Worker-Allowed: /
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex
+
+# Manifest - serve with correct MIME type
+/manifest.json    /manifest.json    200
+  Content-Type: application/manifest+json; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+# Favicon - ensure it's cached properly
+/favicon.ico    /favicon.ico    200
+  Cache-Control: public, max-age=86400
+
+# Static assets - cache for 1 year
+/static/*    /static/:splat    200
+  Cache-Control: public, max-age=31536000, immutable
+
+# Favicon assets - cache for 1 year
+/favicon_ico/*    /favicon_ico/:splat    200
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images - cache for 1 year
+/*.jpg    /:splat.jpg    200
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpeg   /:splat.jpeg   200
+  Cache-Control: public, max-age=31536000, immutable
+/*.png    /:splat.png    200
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg    /:splat.svg    200
+  Cache-Control: public, max-age=31536000, immutable
+/*.gif    /:splat.gif    200
+  Cache-Control: public, max-age=31536000, immutable
+
+# CSS and JS - cache for 1 year
+/*.css    /:splat.css    200
+  Cache-Control: public, max-age=31536000, immutable
+/*.js     /:splat.js     200
+  Cache-Control: public, max-age=31536000, immutable
+
+# Static assets with long cache
+/static/* /static/:splat 200
+  Cache-Control: public, max-age=31536000, immutable
+
+# Favicon and icons
+/favicon.ico /favicon.ico 200
+  Cache-Control: public, max-age=31536000
+
+/favicon_ico/* /favicon_ico/:splat 200
+  Cache-Control: public, max-age=31536000
+
+# Other assets
+/assets/* /assets/:splat 200
+  Cache-Control: public, max-age=31536000, immutable
+
+# SPA fallback - all other routes go to index.html with no cache
+/* /index.html 200
+  Cache-Control: no-cache

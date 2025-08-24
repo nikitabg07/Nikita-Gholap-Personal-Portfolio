@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Worker Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test { padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .success { background-color: #dff0d8; }
+        .error { background-color: #f2dede; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Service Worker Test</h1>
+    
+    <div id="sw-test" class="test">
+        <h2>Service Worker Registration</h2>
+        <div id="sw-status">Testing service worker registration...</div>
+    </div>
+    
+    <div id="fetch-test" class="test">
+        <h2>Fetch Test</h2>
+        <div id="fetch-status">Testing service-worker.js fetch...</div>
+    </div>
+    
+    <div id="content-test" class="test">
+        <h2>Content Test</h2>
+        <div id="content-status">Testing service worker content...</div>
+        <pre id="sw-content"></pre>
+    </div>
+
+    <script>
+        // Test service worker registration
+        const swTest = document.getElementById('sw-status');
+        const fetchTest = document.getElementById('fetch-status');
+        const contentTest = document.getElementById('content-status');
+        const swContent = document.getElementById('sw-content');
+        
+        // Test 1: Check if service workers are supported
+        if ('serviceWorker' in navigator) {
+            swTest.innerHTML += '<p>✓ Service Workers are supported in this browser</p>';
+            
+            // Test 2: Fetch the service worker file directly
+            fetch('/service-worker.js')
+                .then(response => {
+                    fetchTest.innerHTML += `<p>✓ Service worker file found (Status: ${response.status})</p>`;
+                    fetchTest.innerHTML += `<p>Content-Type: ${response.headers.get('content-type')}</p>`;
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    return response.text();
+                })
+                .then(text => {
+                    // Test 3: Check if the content is valid JavaScript
+                    if (text.trim().startsWith('<!')) {
+                        contentTest.innerHTML = '<p class="error">❌ Service worker file contains HTML instead of JavaScript</p>';
+                        swContent.textContent = text.substring(0, 500) + '...';
+                    } else if (text.includes('ServiceWorker')) {
+                        contentTest.innerHTML = '<p class="success">✓ Service worker file contains valid JavaScript</p>';
+                        swContent.textContent = text.substring(0, 500) + (text.length > 500 ? '...' : '');
+                    } else {
+                        contentTest.innerHTML = '<p class="error">❌ Service worker file does not contain expected content</p>';
+                        swContent.textContent = text.substring(0, 500) + '...';
+                    }
+                    
+                    // Register the service worker
+                    return navigator.serviceWorker.register('/service-worker.js');
+                })
+                .then(registration => {
+                    swTest.innerHTML += `<p class="success">✓ Service Worker registered with scope: ${registration.scope}</p>`;
+                    document.getElementById('sw-test').classList.add('success');
+                })
+                .catch(error => {
+                    swTest.innerHTML += `<p class="error">❌ Service Worker registration failed: ${error.message}</p>`;
+                    fetchTest.innerHTML += `<p class="error">❌ ${error.message}</p>`;
+                    document.getElementById('sw-test').classList.add('error');
+                    document.getElementById('fetch-test').classList.add('error');
+                });
+        } else {
+            swTest.innerHTML = '<p class="error">❌ Service Workers are not supported in this browser</p>';
+            document.getElementById('sw-test').classList.add('error');
+        }
+    </script>
+</body>
+</html>

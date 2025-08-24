@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Worker & Manifest Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #results { margin-top: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Service Worker & Manifest Test</h1>
+    <div>
+        <button onclick="testEndpoints()">Run Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, className = '') {
+            const div = document.createElement('div');
+            div.className = className;
+            div.textContent = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        async function testEndpoints() {
+            clearResults();
+            
+            // Test manifest.json
+            await testEndpoint('/manifest.json', 'application/manifest+json');
+            
+            // Test service worker
+            await testEndpoint('/service-worker.js', 'application/javascript');
+            
+            // Test alternative service worker endpoint
+            await testEndpoint('/api/sw', 'application/javascript');
+        }
+
+        async function testEndpoint(url, expectedContentType) {
+            log(`\nTesting: ${url}`, 'test-header');
+            
+            try {
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                const contentType = response.headers.get('content-type') || '';
+                const isContentTypeValid = contentType.includes(expectedContentType);
+                
+                log(`Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                log(`Content-Type: ${contentType}`, isContentTypeValid ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    log(`Failed to load ${url}: ${response.status} ${response.statusText}`, 'error');
+                    return;
+                }
+                
+                const content = await response.text();
+                
+                if (content.trim().startsWith('<!')) {
+                    log('Error: Received HTML instead of expected content!', 'error');
+                    log('This usually means the file is not being served correctly.');
+                }
+                
+                log('Response Headers:', 'header');
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                log(JSON.stringify(headers, null, 2), 'pre');
+                
+                log('First 200 characters of content:', 'header');
+                log(content.substring(0, 200), 'pre');
+                
+            } catch (error) {
+                log(`Error fetching ${url}: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

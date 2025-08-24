@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PWA Test Page</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            line-height: 1.6;
+        }
+        .test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .pass { 
+            background-color: #dff0d8; 
+            border-color: #d6e9c6;
+        }
+        .fail { 
+            background-color: #f2dede;
+            border-color: #ebccd1;
+        }
+        .warning { 
+            background-color: #fcf8e3;
+            border-color: #faebcc;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>PWA Test Page</h1>
+    
+    <div id="manifest-test" class="test">
+        <h2>1. Manifest Test</h2>
+        <div id="manifest-status">Testing manifest.json...</div>
+    </div>
+    
+    <div id="sw-test" class="test">
+        <h2>2. Service Worker Test</h2>
+        <div id="sw-status">Testing service worker registration...</div>
+        <button id="unregister-sw">Unregister Service Worker</button>
+    </div>
+    
+    <div id="cache-test" class="test">
+        <h2>3. Cache Test</h2>
+        <div id="cache-status">Testing cache...</div>
+        <button id="clear-cache">Clear Cache</button>
+    </div>
+
+    <div id="install-test" class="test">
+        <h2>4. Install Test</h2>
+        <div id="install-status">Checking installability...</div>
+        <button id="install-btn" style="display: none;">Install PWA</button>
+    </div>
+
+    <div id="results" class="test">
+        <h2>Test Results</h2>
+        <div id="test-results">Running tests...</div>
+    </div>
+
+    <script>
+        const manifestStatus = document.getElementById('manifest-status');
+        const swStatus = document.getElementById('sw-status');
+        const cacheStatus = document.getElementById('cache-status');
+        const installStatus = document.getElementById('install-status');
+        const testResults = document.getElementById('test-results');
+        const installBtn = document.getElementById('install-btn');
+        
+        let deferredPrompt;
+        const testResultsObj = {
+            manifest: { passed: false, message: 'Not tested' },
+            serviceWorker: { passed: false, message: 'Not tested' },
+            cache: { passed: false, message: 'Not tested' },
+            install: { passed: false, message: 'Not tested' }
+        };
+
+        function updateTestResults() {
+            let html = '';
+            let allPassed = true;
+            
+            for (const [test, result] of Object.entries(testResultsObj)) {
+                const status = result.passed ? '✅' : '❌';
+                html += `<div><strong>${test}:</strong> ${status} ${result.message}</div>`;
+                allPassed = allPassed && result.passed;
+            }
+            
+            testResults.innerHTML = html;
+            
+            if (allPassed) {
+                document.getElementById('results').classList.add('pass');
+            } else {
+                document.getElementById('results').classList.add('warning');
+            }
+        }
+
+        // Test 1: Check manifest
+        fetch('/manifest.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(manifest => {
+                manifestStatus.innerHTML = `
+                    <div class="pass">
+                        ✓ Manifest loaded successfully!
+                        <pre>${JSON.stringify(manifest, null, 2)}</pre>
+                    </div>
+                `;
+                document.getElementById('manifest-test').classList.add('pass');
+                testResultsObj.manifest = { 
+                    passed: true, 
+                    message: 'Manifest loaded successfully' 
+                };
+                updateTestResults();
+            })
+            .catch(error => {
+                manifestStatus.innerHTML = `
+                    <div class="fail">
+                        ✗ Failed to load manifest: ${error.message}
+                        <p>Make sure the manifest.json file exists and is accessible at the root of your site.</p>
+                    </div>
+                `;
+                document.getElementById('manifest-test').classList.add('fail');
+                testResultsObj.manifest = { 
+                    passed: false, 
+                    message: `Failed to load manifest: ${error.message}`
+                };
+                updateTestResults();
+            });
+
+        // Test 2: Check service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    swStatus.innerHTML = `
+                        <div class="pass">
+                            ✓ Service Worker registered successfully!
+                            <p>Scope: ${registration.scope}</p>
+                        </div>
+                    `;
+                    document.getElementById('sw-test').classList.add('pass');
+                    testResultsObj.serviceWorker = { 
+                        passed: true, 
+                        message: 'Service Worker registered successfully' 
+                    };
+                    updateTestResults();
+                    
+                    // Check for updates
+                    return registration.update();
+                })
+                .then(() => {
+                    console.log('Service Worker update check completed');
+                })
+                .catch(error => {
+                    swStatus.innerHTML = `
+                        <div class="fail">
+                            ✗ Service Worker registration failed: ${error.message}
+                            <p>Check the browser's console for more details.</p>
+                        </div>
+                    `;
+                    document.getElementById('sw-test').classList.add('fail');
+                    testResultsObj.serviceWorker = { 
+                        passed: false, 
+                        message: `Registration failed: ${error.message}`
+                    };
+                    updateTestResults();
+                });
+                
+            // Unregister button
+            document.getElementById('unregister-sw').addEventListener('click', () => {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                    swStatus.innerHTML = '<div class="warning">✓ Service Worker unregistered. Refresh the page to re-register.</div>';
+                });
+            });
+        } else {
+            swStatus.innerHTML = `
+                <div class="fail">
+                    ✗ Service Workers are not supported in this browser.
+                </div>
+            `;
+            document.getElementById('sw-test').classList.add('fail');
+            testResultsObj.serviceWorker = { 
+                passed: false, 
+                message: 'Service Workers not supported' 
+            };
+            updateTestResults();
+        }
+
+        // Test 3: Check cache
+        if ('caches' in window) {
+            caches.open('portfolio-cache-v1')
+                .then(cache => {
+                    cacheStatus.innerHTML = `
+                        <div class="pass">
+                            ✓ Cache storage is working correctly.
+                        </div>
+                    `;
+                    document.getElementById('cache-test').classList.add('pass');
+                    testResultsObj.cache = { 
+                        passed: true, 
+                        message: 'Cache storage is working' 
+                    };
+                    updateTestResults();
+                })
+                .catch(error => {
+                    cacheStatus.innerHTML = `
+                        <div class="fail">
+                            ✗ Cache storage error: ${error.message}
+                        </div>
+                    `;
+                    document.getElementById('cache-test').classList.add('fail');
+                    testResultsObj.cache = { 
+                        passed: false, 
+                        message: `Cache error: ${error.message}`
+                    };
+                    updateTestResults();
+                });
+                
+            // Clear cache button
+            document.getElementById('clear-cache').addEventListener('click', () => {
+                caches.keys().then(cacheNames => {
+                    return Promise.all(
+                        cacheNames.map(cacheName => {
+                            return caches.delete(cacheName);
+                        })
+                    );
+                }).then(() => {
+                    cacheStatus.innerHTML = '<div class="warning">✓ Cache cleared. Refresh the page to rebuild cache.</div>';
+                });
+            });
+        } else {
+            cacheStatus.innerHTML = `
+                <div class="warning">
+                    ⚠ Cache API is not supported in this browser.
+                </div>
+            `;
+            document.getElementById('cache-test').classList.add('warning');
+            testResultsObj.cache = { 
+                passed: false, 
+                message: 'Cache API not supported' 
+            };
+            updateTestResults();
+        }
+
+        // Test 4: Install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show the install button
+            installBtn.style.display = 'block';
+            
+            installStatus.innerHTML = `
+                <div class="pass">
+                    ✓ This app can be installed as a PWA.
+                </div>
+            `;
+            document.getElementById('install-test').classList.add('pass');
+            testResultsObj.install = { 
+                passed: true, 
+                message: 'App is installable as PWA' 
+            };
+            updateTestResults();
+        });
+
+        // Install button click handler
+        installBtn.addEventListener('click', () => {
+            if (!deferredPrompt) return;
+            
+            // Show the install prompt
+            deferredPrompt.prompt();
+            
+            // Wait for the user to respond to the prompt
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    installStatus.innerHTML = '<div class="pass">✓ PWA installation in progress...</div>';
+                } else {
+                    console.log('User dismissed the install prompt');
+                    installStatus.innerHTML = '<div class="warning">⚠ PWA installation was declined.</div>';
+                }
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            });
+        });
+
+        // If we get to this point and the beforeinstallprompt event hasn't fired,
+        // it means the app doesn't meet the installation criteria
+        setTimeout(() => {
+            if (!deferredPrompt) {
+                installStatus.innerHTML = `
+                    <div class="warning">
+                        ⚠ This app doesn't meet the criteria for PWA installation.
+                        <p>Make sure you have a valid web app manifest and service worker.</p>
+                    </div>
+                `;
+                document.getElementById('install-test').classList.add('warning');
+                testResultsObj.install = { 
+                    passed: false, 
+                    message: 'App does not meet PWA installation criteria' 
+                };
+                updateTestResults();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>DOCTYPE html>
+<html>
+<head>
+    <title>PWA Test Page</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .pass { background-color: #dff0d8; }
+        .fail { background-color: #f2dede; }
+        .warning { background-color: #fcf8e3; }
+    </style>
+</head>
+<body>
+    <h1>PWA Test Page</h1>
+    
+    <div id="manifest-test" class="test">
+        <h2>Manifest Test</h2>
+        <div id="manifest-status">Testing manifest.json...</div>
+    </div>
+    
+    <div id="sw-test" class="test">
+        <h2>Service Worker Test</h2>
+        <div id="sw-status">Testing service worker registration...</div>
+    </div>
+    
+    <div id="cache-test" class="test">
+        <h2>Cache Test</h2>
+        <div id="cache-status">Testing cache...</div>
+    </div>
+
+    <script>
+        // Test manifest loading
+        fetch('/manifest.json')
+            .then(response => {
+                const manifestDiv = document.getElementById('manifest-status');
+                if (response.ok) {
+                    return response.json().then(manifest => {
+                        manifestDiv.innerHTML = `
+                            <p class="pass">✓ Manifest loaded successfully!</p>
+                            <pre>${JSON.stringify(manifest, null, 2)}</pre>
+                        `;
+                        document.getElementById('manifest-test').classList.add('pass');
+                    });
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            })
+            .catch(error => {
+                const manifestDiv = document.getElementById('manifest-status');
+                manifestDiv.innerHTML = `
+                    <p class="fail">✗ Failed to load manifest: ${error.message}</p>
+                    <p>Make sure the manifest.json file exists and is accessible at the root of your site.</p>
+                `;
+                document.getElementById('manifest-test').classList.add('fail');
+            });
+
+        // Test service worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    const swDiv = document.getElementById('sw-status');
+                    swDiv.innerHTML = `
+                        <p class="pass">✓ Service Worker registered successfully!</p>
+                        <p>Scope: ${registration.scope}</p>
+                    `;
+                    document.getElementById('sw-test').classList.add('pass');
+                    
+                    // Test cache
+                    return caches.open('portfolio-cache-v1');
+                })
+                .then(cache => {
+                    const cacheDiv = document.getElementById('cache-status');
+                    cacheDiv.innerHTML = `
+                        <p class="pass">✓ Cache test passed!</p>
+                        <p>Cache storage is working correctly.</p>
+                    `;
+                    document.getElementById('cache-test').classList.add('pass');
+                })
+                .catch(error => {
+                    const swDiv = document.getElementById('sw-status');
+                    swDiv.innerHTML = `
+                        <p class="fail">✗ Service Worker registration failed: ${error.message}</p>
+                        <p>Check the browser's console for more details.</p>
+                    `;
+                    document.getElementById('sw-test').classList.add('fail');
+                });
+        } else {
+            const swDiv = document.getElementById('sw-status');
+            swDiv.innerHTML = `
+                <p class="warning">⚠ Service Workers are not supported in this browser.</p>
+                <p>Try using a modern browser like Chrome, Firefox, or Edge.</p>
+            `;
+            document.getElementById('sw-test').classList.add('warning');
+        }
+    </script>
+</body>
+</html>

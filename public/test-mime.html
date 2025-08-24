@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MIME Type Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background-color: #dff0d8; }
+        .error { background-color: #f2dede; }
+    </style>
+</head>
+<body>
+    <h1>MIME Type Test</h1>
+    
+    <div>
+        <h2>Testing manifest.json</h2>
+        <button onclick="testMimeType('/manifest.json')">Test manifest.json</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function testMimeType(url) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch(url);
+                const contentType = response.headers.get('content-type') || 'No content-type header';
+                const isJson = contentType.includes('application/json') || 
+                              contentType.includes('application/manifest+json');
+                
+                let content;
+                try {
+                    content = await response.text();
+                    JSON.parse(content); // Test if valid JSON
+                } catch (e) {
+                    throw new Error(`Invalid JSON: ${e.message}`);
+                }
+                
+                resultDiv.className = 'result ' + (isJson ? 'success' : 'error');
+                resultDiv.innerHTML = `
+                    <p>URL: ${url}</p>
+                    <p>Status: ${response.status} ${response.statusText}</p>
+                    <p>Content-Type: ${contentType}</p>
+                    <p>Valid JSON: Yes</p>
+                    <p>Is JSON MIME type: ${isJson ? 'Yes' : 'No'}</p>
+                    <h3>Response Headers:</h3>
+                    <pre>${[...response.headers.entries()].map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>
+                    <h3>Response Body:</h3>
+                    <pre>${content}</pre>
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <p>Error testing ${url}:</p>
+                    <pre>${error.message}</pre>
+                    <p>Stack:</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

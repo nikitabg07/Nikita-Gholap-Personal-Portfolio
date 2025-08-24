@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Worker Registration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #log { 
+            background: #f5f5f5; 
+            padding: 15px; 
+            border-radius: 4px; 
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Service Worker Registration Test</h1>
+    <div id="log">Running tests...
+</div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message, type = '') {
+            const line = document.createElement('div');
+            if (type) line.className = type;
+            line.textContent = message;
+            log.appendChild(line);
+            console.log(message);
+        }
+
+        // Test 1: Check if service workers are supported
+        if ('serviceWorker' in navigator) {
+            addLog('✓ Service Workers are supported in this browser');
+            
+            // Test 2: Try to fetch the service worker file directly
+            fetch('/service-worker.js', { 
+                cache: 'no-store',
+                headers: { 'Service-Worker': 'script' }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                addLog(`✓ Service worker file found (${text.length} bytes)`);
+                
+                // Check if the file contains HTML (which would indicate a 404 page)
+                if (text.trim().startsWith('<!')) {
+                    addLog('❌ Service worker file appears to be an HTML page (404)', 'error');
+                    addLog('First 100 characters of response:', 'error');
+                    addLog(text.substring(0, 100), 'error');
+                    return;
+                }
+                
+                // Check if it looks like a valid service worker
+                if (text.includes('ServiceWorker') || text.includes('self.addEventListener')) {
+                    addLog('✓ Service worker file contains valid service worker code');
+                } else {
+                    addLog('❌ Service worker file does not contain expected code', 'error');
+                    addLog('First 100 characters of file:', 'error');
+                    addLog(text.substring(0, 100), 'error');
+                    return;
+                }
+                
+                // Try to register the service worker
+                return navigator.serviceWorker.register('/service-worker.js', {
+                    scope: '/',
+                    updateViaCache: 'none'
+                });
+            })
+            .then(registration => {
+                if (!registration) return; // Skip if registration failed
+                
+                addLog(`✓ Service Worker registered with scope: ${registration.scope}`, 'success');
+                
+                // Check for updates
+                return registration.update().then(() => {
+                    addLog('✓ Service Worker update check completed');
+                    return registration;
+                });
+            })
+            .catch(error => {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                if (error.stack) {
+                    addLog(error.stack, 'error');
+                }
+            });
+            
+            // Test manifest loading
+            fetch('/manifest.json', { cache: 'no-store' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(manifest => {
+                    addLog('✓ Manifest loaded successfully');
+                    console.log('Manifest:', manifest);
+                })
+                .catch(error => {
+                    addLog(`❌ Error loading manifest: ${error.message}`, 'error');
+                });
+            
+        } else {
+            addLog('❌ Service Workers are not supported in this browser', 'error');
+        }
+    </script>
+</body>
+</html>

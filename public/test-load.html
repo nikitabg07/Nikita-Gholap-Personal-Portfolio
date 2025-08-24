@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resource Load Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #results { margin-top: 20px; white-space: pre; font-family: monospace; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>Resource Load Test</h1>
+    <button onclick="testResources()">Test Resources</button>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, className = '') {
+            const div = document.createElement('div');
+            div.className = className;
+            div.textContent = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function testResources() {
+            results.innerHTML = '';
+            
+            // Test manifest.json
+            await testResource('/manifest.json', 'application/manifest+json');
+            
+            // Test service worker
+            await testResource('/service-worker.js', 'application/javascript');
+            
+            // Test if service worker can be registered
+            await testServiceWorker();
+        }
+
+        async function testResource(url, expectedType) {
+            log(`\nTesting: ${url}`, 'test-header');
+            
+            try {
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                const contentType = response.headers.get('content-type') || '';
+                const isContentTypeValid = contentType.includes(expectedType);
+                
+                log(`Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                log(`Content-Type: ${contentType}`, isContentTypeValid ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    log(`Failed to load ${url}: ${response.status} ${response.statusText}`, 'error');
+                    return;
+                }
+                
+                const content = await response.text();
+                
+                if (content.trim().startsWith('<!')) {
+                    log('ERROR: Received HTML instead of expected content!', 'error');
+                    log('This usually means the server is not configured to serve this file type.');
+                }
+                
+                log('First 200 chars:', 'info');
+                log(content.substring(0, 200), 'pre');
+                
+            } catch (error) {
+                log(`Error fetching ${url}: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function testServiceWorker() {
+            log('\nTesting Service Worker Registration', 'test-header');
+            
+            if (!('serviceWorker' in navigator)) {
+                log('Service Worker API not supported in this browser', 'error');
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.register('/service-worker.js', {
+                    scope: '/',
+                    updateViaCache: 'none'
+                });
+                
+                log('Service Worker registered successfully', 'success');
+                log(`Scope: ${registration.scope}`, 'info');
+                
+                if (registration.installing) {
+                    log('Service Worker is installing...', 'info');
+                } else if (registration.waiting) {
+                    log('Service Worker is waiting...', 'info');
+                } else if (registration.active) {
+                    log('Service Worker is active', 'success');
+                }
+                
+            } catch (error) {
+                log(`Service Worker registration failed: ${error.message}`, 'error');
+                console.error('Registration error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #results { margin-top: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Network Resource Test</h1>
+    <div>
+        <button onclick="testResources()">Test Resources</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, className = '') {
+            const div = document.createElement('div');
+            div.className = className;
+            div.textContent = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        async function testResources() {
+            const resources = [
+                '/service-worker.js',
+                '/manifest.json',
+                '/index.html',
+                '/favicon.ico'
+            ];
+
+            for (const url of resources) {
+                await testResource(url);
+            }
+        }
+
+        async function testResource(url) {
+            log(`\nTesting: ${url}`, 'test-header');
+            
+            try {
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+                
+                log(`Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                log(`Content-Type: ${response.headers.get('content-type')}`);
+                
+                if (!response.ok) {
+                    log(`Failed to load ${url}: ${response.status} ${response.statusText}`, 'error');
+                    return;
+                }
+                
+                const content = await response.text();
+                
+                if (content.trim().startsWith('<!')) {
+                    log('Warning: Received HTML instead of expected content!', 'error');
+                }
+                
+                log('Response Headers:', 'header');
+                log(JSON.stringify(headers, null, 2), 'pre');
+                
+                log('First 200 characters of content:', 'header');
+                log(content.substring(0, 200), 'pre');
+                
+            } catch (error) {
+                log(`Error fetching ${url}: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

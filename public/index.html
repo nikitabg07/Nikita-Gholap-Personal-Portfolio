@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- frame-ancestors must be set via HTTP header -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https:; media-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self';" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Nikita Gholap's Portfolio - Web Developer & Designer" />
+    
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon_ico/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon_ico/favicon-16x16.png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon_ico/apple-touch-icon.png" />
+    
+    <!-- Pinned Tab Icon -->
+    <link rel="mask-icon" href="/favicon_ico/safari-pinned-tab.svg" color="#5bbad5">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#ffffff">
+    
+    <!-- Web App Manifest with MIME type and absolute path -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#ffffff" />
+    
+    <!-- iOS specific -->
+    <script>
+      // Register service worker in production only
+      if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && window.location.protocol === 'https:') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              
+              // Check for updates
+              registration.update().catch(err => 
+                console.log('Service worker update check failed:', err)
+              );
+              
+              // Listen for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('New content is available; please refresh.');
+                  }
+                });
+              });
+            })
+            .catch(error => {
+              console.error('ServiceWorker registration failed: ', error);
+            });
+          
+          // Ensure service worker is controlling the page after load
+          if (!navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.active.postMessage({ type: 'SKIP_WAITING' });
+            });
+          }
+        });
+      }
+    </script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Nikita's Portfolio">
+    
+    <!-- Windows specific -->
+    <meta name="msapplication-TileImage" content="/favicon_ico/mstile-150x150.png">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    
+    <!-- PWA related links -->
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon_ico/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon_ico/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon_ico/favicon-16x16.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Theme Color for Chrome, Firefox OS and Opera -->
+    <meta name="theme-color" content="#ffffff" />
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Nikita Gholap's Portfolio" />
+    <meta name="description" content="Personal portfolio of Nikita Gholap - Web Developer & Designer" />
+    
+    <title>Nikita Gholap's Portfolio</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

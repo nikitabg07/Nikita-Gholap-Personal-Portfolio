@@ -1,0 +1,36 @@
+# Global headers for all responses
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+# Manifest file with proper content type
+/manifest.json
+  Content-Type: application/manifest+json; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+# Service Worker
+/service-worker.js
+  Service-Worker-Allowed: /
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Static assets with long cache
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Favicon and icons
+/favicon.ico
+  Cache-Control: public, max-age=31536000
+
+/favicon_ico/*
+  Cache-Control: public, max-age=31536000
+
+# Other assets
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# SPA fallback
+/*
+  Cache-Control: no-cache

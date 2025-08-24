@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Response Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #output { 
+            white-space: pre-wrap;
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Server Response Test</h1>
+    <button onclick="testUrl('/service-worker.js')">Test service-worker.js</button>
+    <button onclick="testUrl('/manifest.json')">Test manifest.json</button>
+    <button onclick="testUrl('/')">Test index.html</button>
+    
+    <h2>Test URL:</h2>
+    <input type="text" id="testUrl" placeholder="Enter URL to test" style="width: 300px; padding: 5px;">
+    <button onclick="testUrl(document.getElementById('testUrl').value)">Test</button>
+    
+    <div id="output">Click a button to test a URL</div>
+
+    <script>
+        async function testUrl(url) {
+            const output = document.getElementById('output');
+            output.textContent = `Testing ${url}...\n\n`;
+            
+            try {
+                // Test with fetch first
+                const response = await fetch(url, { 
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                // Get response headers
+                const headers = [];
+                response.headers.forEach((value, key) => {
+                    headers.push(`${key}: ${value}`);
+                });
+                
+                // Try to get response as text
+                let responseText;
+                try {
+                    responseText = await response.text();
+                } catch (e) {
+                    responseText = `[Could not read response as text: ${e.message}]`;
+                }
+                
+                // Display results
+                output.textContent += `Status: ${response.status} ${response.statusText}\n`;
+                output.textContent += `URL: ${response.url}\n\n`;
+                
+                output.textContent += 'Headers:\n';
+                output.textContent += headers.join('\n') + '\n\n';
+                
+                output.textContent += 'Response (first 500 chars):\n';
+                output.textContent += responseText.substring(0, 500);
+                if (responseText.length > 500) {
+                    output.textContent += '\n[...]';
+                }
+                
+                // Check if response is HTML when it shouldn't be
+                if (url.endsWith('.js') && responseText.trim().startsWith('<!')) {
+                    output.textContent += '\n\n❌ ERROR: Received HTML instead of JavaScript\n';
+                    output.textContent += 'This usually means the file was not found and you\'re seeing a 404 page.';
+                }
+                
+            } catch (error) {
+                output.textContent += `\n❌ Error: ${error.message}\n`;
+                if (error.stack) {
+                    output.textContent += error.stack;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

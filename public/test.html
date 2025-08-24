@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test React App</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 20px;
+    }
+    #test-root { 
+      border: 2px solid #ccc; 
+      padding: 20px; 
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>React Test Page</h1>
+  <p>This page tests if React is working correctly.</p>
+  
+  <div id="test-root">
+    <!-- React will render here -->
+  </div>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <script type="text/babel">
+    // Simple React component
+    function TestComponent() {
+      const [count, setCount] = React.useState(0);
+      
+      return (
+        <div>
+          <h2>React is working! 🎉</h2>
+          <p>Count: {count}</p>
+          <button onClick={() => setCount(c => c + 1)}>
+            Increment
+          </button>
+        </div>
+      );
+    }
+
+    // Render the component
+    const root = ReactDOM.createRoot(document.getElementById('test-root'));
+    root.render(<TestComponent />);
+  </script>
+  
+  <div>
+    <h2>Environment Information</h2>
+    <p>This information can help diagnose issues:</p>
+    <ul>
+      <li>User Agent: <span id="user-agent"></span></li>
+      <li>Screen Size: <span id="screen-size"></span></li>
+      <li>Cookies Enabled: <span id="cookies"></span></li>
+      <li>Local Storage: <span id="local-storage"></span></li>
+    </ul>
+  </div>
+
+  <script>
+    // Display environment information
+    document.getElementById('user-agent').textContent = navigator.userAgent;
+    document.getElementById('screen-size').textContent = 
+      `${window.screen.width}x${window.screen.height}`;
+    document.getElementById('cookies').textContent = 
+      navigator.cookieEnabled ? 'Yes' : 'No';
+    document.getElementById('local-storage').textContent = 
+      typeof(Storage) !== 'undefined' ? 'Available' : 'Not Available';
+  </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Content-Type Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Content-Type Test</h1>
+    <div id="results">Testing file content types...</div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, className = '') {
+            const line = document.createElement('div');
+            if (className) line.className = className;
+            line.textContent = message;
+            results.appendChild(line);
+            console.log(message);
+        }
+
+        async function testFile(url, expectedType) {
+            log(`\nTesting: ${url}`);
+            log(`Expected Content-Type: ${expectedType}`);
+            
+            try {
+                const response = await fetch(url, { 
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                
+                const contentType = response.headers.get('content-type') || '';
+                const content = await response.text();
+                
+                log(`Status: ${response.status} ${response.statusText}`);
+                log(`Actual Content-Type: ${contentType}`);
+                
+                if (!response.ok) {
+                    log(`❌ Failed to load: ${response.status} ${response.statusText}`, 'error');
+                    return false;
+                }
+                
+                if (!contentType.includes(expectedType.split('/')[1])) {
+                    log(`❌ Incorrect Content-Type: expected ${expectedType} but got ${contentType}`, 'error');
+                    
+                    // Check if we got an HTML error page
+                    if (content.trim().startsWith('<!')) {
+                        log('⚠ Received HTML error page instead of expected content', 'error');
+                        log('First 200 characters of response:', 'error');
+                        log(content.substring(0, 200), 'error');
+                    }
+                    
+                    return false;
+                }
+                
+                log('✓ Content-Type is correct', 'success');
+                log(`File size: ${content.length} bytes`);
+                
+                // Show first 100 chars of content
+                log('\nFirst 100 characters:', 'info');
+                log(content.substring(0, 100) + (content.length > 100 ? '...' : ''), 'info');
+                
+                return true;
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Run tests
+        async function runTests() {
+            await testFile('/service-worker.js', 'application/javascript');
+            await testFile('/test-sw-response.js', 'application/javascript');
+            await testFile('/manifest.json', 'application/json');
+            
+            log('\nTest complete. Check the browser console for more details.');
+        }
+        
+        // Start tests
+        runTests();
+    </script>
+</body>
+</html>

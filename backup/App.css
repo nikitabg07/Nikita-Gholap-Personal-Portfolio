@@ -1,0 +1,332 @@
+:root {
+  --primary-color: #4338ca; /* Indigo 600 */
+  --secondary-color: #6366f1; /* Indigo 500 */
+  --accent-color: #8b5cf6; /* Purple 500 */
+  --text-primary: #111827; /* Gray 900 */
+  --text-secondary: #4b5563; /* Gray 600 */
+  --text-muted: #6b7280; /* Gray 500 */
+  --bg-primary: #f3f4f6; /* Gray 100 */
+  --bg-secondary: #e5e7eb; /* Gray 200 */
+  --bg-darker: #1f2937; /* Gray 800 */
+  --border-light: #e5e7eb; /* Gray 200 */
+  --gradient-primary: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --card-hover-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.375rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-xl: 0.75rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --transition-speed: 0.3s;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .nav-link {
+    @apply px-3 py-2 text-[var(--text-secondary)] transition-colors rounded-md hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)];
+    padding: 0.5rem 0.75rem;
+  }
+
+  .nav-link.active {
+    @apply bg-[var(--bg-secondary)] text-[var(--text-primary)];
+  }
+
+  .form-input {
+    @apply w-full px-3 py-2 border border-[var(--border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/50;
+  }
+
+  .primary-button {
+    @apply bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm hover:bg-[var(--secondary-color)] hover:shadow-md flex items-center gap-1;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .resume-button {
+    @apply bg-[var(--primary-color)] text-white px-4 py-1.5 rounded-full font-medium transition-all duration-200 shadow-sm hover:bg-[var(--secondary-color)] hover:shadow-md flex items-center gap-2 text-sm;
+  }
+
+  .resume-card {
+    @apply bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow p-6 flex flex-col items-center justify-center;
+  }
+}
+
+@layer utilities {
+  .card {
+    @apply bg-white rounded-xl shadow-sm transition-all duration-200 p-6;
+  }
+}
+
+/* Progress bars */
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background-color: #f3f4f6;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.skill-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: var(--border-radius-lg);
+  transition: width var(--transition-speed) ease;
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--card-shadow);
+  transition: all var(--transition-speed) ease;
+  padding: var(--card-padding);
+}
+
+.card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* Project image */
+.project-image {
+  width: 100%;
+  height: 12rem;
+  object-fit: cover;
+  border-radius: var(--border-radius-lg);
+}
+
+/* Icons */
+.icon {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+/* Section titles */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+/* Tech stack */
+.tech-stack {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Achievement text */
+.achievement-text {
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-left: 0.5rem;
+}
+
+/* Project cards */
+.project-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--card-shadow);
+  transition: all var(--transition-speed) ease;
+  overflow: hidden;
+}
+
+.project-card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+.project-card img {
+  width: 100%;
+  height: 12rem;
+  object-fit: cover;
+}
+
+/* Service cards */
+.service-card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--card-shadow);
+  transition: all var(--transition-speed) ease;
+  padding: var(--card-padding);
+  text-align: center;
+}
+
+.service-card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* Contact form */
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  transition: all var(--transition-speed) ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Navigation styles */
+.nav-link {
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  border-radius: 0.375rem;
+}
+
+.nav-link:hover {
+  color: var(--text-color);
+  background-color: #f8fafc;
+}
+
+.primary-button {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: var(--button-shadow);
+}
+
+.primary-button:hover {
+  background-color: var(--primary-dark);
+  box-shadow: var(--button-hover-shadow);
+}
+
+/* Section styles */
+section {
+  padding: 4rem 0;
+}
+
+/* Card styles */
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+  padding: 1.5rem;
+}
+
+.card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* Progress bar styles */
+.skill-progress {
+  width: 100%;
+  height: 0.5rem;
+  background-color: #f3f4f6;
+  border-radius: 0.25rem;
+}
+
+.skill-bar {
+  height: 0.5rem;
+  background-color: var(--primary-color);
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
+}
+
+/* Project card styles */
+.project-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.project-card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+.project-card img {
+  width: 100%;
+  height: 12rem;
+  object-fit: cover;
+}
+
+/* Service card styles */
+.service-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.service-card:hover {
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* Contact form styles */
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .nav-link {
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .primary-button {
+    padding: 0.5rem 1rem;
+  }
+  
+  .skill-progress {
+    height: 0.375rem;
+  }
+  
+  .skill-bar {
+    height: 0.375rem;
+  }
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(17, 24, 39, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.8);
+}

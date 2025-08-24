@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Worker Fetch Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }
+        #results {
+            white-space: pre-wrap;
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-family: monospace;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Service Worker Fetch Test</h1>
+    <div id="results">Testing service worker fetch...</div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, className = '') {
+            const div = document.createElement('div');
+            div.textContent = message;
+            if (className) div.className = className;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function testServiceWorker() {
+            const swUrl = '/service-worker.js';
+            log(`Fetching service worker from: ${swUrl}`);
+            
+            try {
+                const response = await fetch(swUrl, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                log(`Status: ${response.status} ${response.statusText}`);
+                log(`Content-Type: ${response.headers.get('Content-Type')}`);
+                log(`Service-Worker-Allowed: ${response.headers.get('Service-Worker-Allowed')}`);
+                
+                const content = await response.text();
+                
+                if (content.trim().startsWith('<!')) {
+                    log('❌ Received HTML instead of JavaScript', 'error');
+                    log('First 200 characters of response:', 'error');
+                    log(content.substring(0, 200), 'error');
+                    return;
+                }
+                
+                if (content.includes('ServiceWorker') || content.includes('self.addEventListener')) {
+                    log('✓ Service worker file contains valid code', 'success');
+                } else {
+                    log('❌ Service worker file does not contain expected code', 'error');
+                    log('First 100 characters of response:', 'error');
+                    log(content.substring(0, 100), 'error');
+                    return;
+                }
+                
+                // Try to register the service worker
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registration = await navigator.serviceWorker.register(swUrl, {
+                            scope: '/',
+                            updateViaCache: 'none'
+                        });
+                        
+                        log(`✓ Service Worker registered with scope: ${registration.scope}`, 'success');
+                        
+                        // Check for updates
+                        await registration.update();
+                        log('✓ Service Worker update check completed', 'success');
+                        
+                    } catch (error) {
+                        log(`❌ Service Worker registration failed: ${error.message}`, 'error');
+                        if (error.stack) {
+                            log(error.stack, 'error');
+                        }
+                    }
+                } else {
+                    log('❌ Service Workers are not supported in this browser', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Error fetching service worker: ${error.message}`, 'error');
+                if (error.stack) {
+                    log(error.stack, 'error');
+                }
+            }
+        }
+        
+        // Run the test
+        testServiceWorker();
+    </script>
+</body>
+</html>
