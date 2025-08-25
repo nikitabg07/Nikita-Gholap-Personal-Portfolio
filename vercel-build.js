@@ -23,15 +23,15 @@ if (fs.existsSync(path.join(process.cwd(), 'build'))) {
   fs.rmSync(path.join(process.cwd(), 'build'), { recursive: true, force: true });
 }
 
-// Step 2: Install production dependencies
-console.log('🔧 Installing production dependencies...');
-let result = exec('npm ci --only=production');
+// Step 2: Install all dependencies (including devDependencies for build)
+console.log('🔧 Installing dependencies...');
+let result = exec('npm install --prefer-offline --no-audit --progress=false');
 if (!result.success) {
-  console.error('❌ Failed to install production dependencies');
+  console.error('❌ Failed to install dependencies');
   process.exit(1);
 }
 
-// Step 3: Run the build directly
+// Step 3: Run the build directly using react-scripts
 console.log('\n🏗️  Running build...');
 result = exec('npx react-scripts build');
 if (!result.success) {
