@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaGraduationCap, FaSchool, FaCertificate } from 'react-icons/fa';
+import { FaGraduationCap, FaSchool } from 'react-icons/fa';
 
 const Education = () => {
   const education = [
