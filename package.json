@@ -2,6 +2,7 @@
   "name": "portfolio",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -31,7 +32,6 @@
     "rimraf": "^6.0.1",
     "tailwindcss": "^3.3.0"
   },
-  "homepage": "/",
   "scripts": {
     "start": "set PORT=3006 && set WDS_SOCKET_PORT=0 && react-scripts start",
     "prebuild": "node fix-imports.js",

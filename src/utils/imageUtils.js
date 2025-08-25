@@ -17,6 +17,8 @@ export const getImageUrl = (path) => {
     return `/${cleanPath}`;
   }
   
-  // In production, use the relative path from the root
-  return `./${cleanPath}`;
+  // In production, use the public URL path (relative to the root of the deployed site)
+  // The public URL is set in package.json as "homepage"
+  const publicUrl = process.env.PUBLIC_URL || '';
+  return `${publicUrl}/${cleanPath}`;
 };
