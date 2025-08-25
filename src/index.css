@@ -7,9 +7,10 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  /* Font smoothing for better readability */
+  /* Font rendering optimization */
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeSpeed;
   background-attachment: fixed;
   background-size: 400% 400%;
   animation: gradientBG 20s ease infinite;

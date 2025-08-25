@@ -13,7 +13,7 @@ process.env.GENERATE_SOURCEMAP = 'false';
 const exec = (command, options = {}) => {
   console.log(`$ ${command}`);
   try {
-    return execSync(command, { 
+    const result = execSync(command, { 
       stdio: 'inherit',
       ...options,
       env: { 
@@ -23,7 +23,7 @@ const exec = (command, options = {}) => {
         NODE_ENV: 'production'
       }
     });
-    return true;
+    return result ? result.toString() : '';
   } catch (error) {
     console.error(`Command failed: ${command}`);
     console.error(error.message);
@@ -34,17 +34,23 @@ const exec = (command, options = {}) => {
 // Main build process
 (async () => {
   try {
-    // Install dependencies
-    console.log('\n🔧 Installing dependencies...');
-    await exec('npm install --prefer-offline --no-audit --progress=false');
+    // Clean up any existing build
+    const buildDir = path.join(process.cwd(), 'build');
+    if (fs.existsSync(buildDir)) {
+      console.log('\n🧹 Cleaning up existing build directory...');
+      await exec('npx rimraf build');
+    }
 
-    // Run the build directly without prebuild step
-    console.log('\n🏗️  Running build...');
-    await exec('react-scripts build');
+    // Install only production dependencies
+    console.log('\n🔧 Installing production dependencies...');
+    await exec('npm ci --prefer-offline --no-audit --progress=false');
+
+    // Run the build directly without any hooks
+    console.log('\n🏗️  Running production build...');
+    await exec('npx react-scripts build --no-pre-build');
     
     // Verify build output
     console.log('\n🔍 Verifying build output...');
-    const buildDir = path.join(process.cwd(), 'build');
     if (!fs.existsSync(buildDir)) {
       throw new Error('Build directory not found after build!');
     }
@@ -55,7 +61,7 @@ const exec = (command, options = {}) => {
     console.log(files);
     
     // Check for essential files
-    const essentialFiles = ['index.html', 'static/'];
+    const essentialFiles = ['index.html', 'static'];
     for (const file of essentialFiles) {
       const filePath = path.join(buildDir, file);
       if (!fs.existsSync(filePath)) {
