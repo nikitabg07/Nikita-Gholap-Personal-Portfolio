@@ -13,7 +13,7 @@ process.env.GENERATE_SOURCEMAP = 'false';
 const exec = (command, options = {}) => {
   console.log(`$ ${command}`);
   try {
-    execSync(command, { 
+    return execSync(command, { 
       stdio: 'inherit',
       ...options,
       env: { 
@@ -38,64 +38,32 @@ const exec = (command, options = {}) => {
     console.log('\n🔧 Installing dependencies...');
     await exec('npm install --prefer-offline --no-audit --progress=false');
 
-    // Install required Tailwind CSS plugins
-    console.log('\n🔧 Installing Tailwind CSS plugins...');
-    await exec('npm install --save-dev @tailwindcss/typography @tailwindcss/forms');
-
-    // Install cross-env as a local dependency if needed
-    console.log('\n🔧 Ensuring cross-env is available...');
-    await exec('npm install --save-dev cross-env');
-
-    // Ensure public directory exists and has necessary files
-    console.log('\n🔍 Verifying public directory...');
-    const publicDir = path.join(process.cwd(), 'public');
-    const requiredFiles = ['manifest.json', 'service-worker.js'];
-    
-    for (const file of requiredFiles) {
-      const filePath = path.join(publicDir, file);
-      if (!fs.existsSync(filePath)) {
-        throw new Error(`Required file ${file} is missing from the public directory`);
-      }
-      console.log(`✓ Found ${file}`);
-    }
-
     // Run the build
     console.log('\n🏗️  Running build...');
-    try {
-      await exec('npm run build');
-      
-      // Verify build output
-      console.log('\n🔍 Verifying build output...');
-      const buildDir = path.join(process.cwd(), 'build');
-      const buildFiles = ['index.html', 'manifest.json', 'service-worker.js'];
-      
-      for (const file of buildFiles) {
-        const filePath = path.join(buildDir, file);
-        if (!fs.existsSync(filePath)) {
-          console.warn(`⚠️  Warning: ${file} not found in build output`);
-        } else {
-          console.log(`✓ Found ${file} in build output`);
-        }
-      }
-    } catch (error) {
-      console.error('\n❌ Build failed. Additional information:');
-      
-      // Check if build directory exists
-      const buildDir = path.join(__dirname, 'build');
-      if (fs.existsSync(buildDir)) {
-        console.log('\n📁 Build directory contents:');
-        const files = fs.readdirSync(buildDir);
-        console.log(files);
-      } else {
-        console.log('\n❌ Build directory not found!');
-      }
-      
-      throw error; // Re-throw the error to mark build as failed
+    await exec('npm run build');
+    
+    // Verify build output
+    console.log('\n🔍 Verifying build output...');
+    const buildDir = path.join(process.cwd(), 'build');
+    if (!fs.existsSync(buildDir)) {
+      throw new Error('Build directory not found after build!');
     }
-
-    // Run postbuild script
-    console.log('\n🔧 Running postbuild steps...');
-    await exec('node postbuild.js');
+    
+    // List build directory contents for debugging
+    console.log('\n📁 Build directory contents:');
+    const files = fs.readdirSync(buildDir);
+    console.log(files);
+    
+    // Check for essential files
+    const essentialFiles = ['index.html', 'static/'];
+    for (const file of essentialFiles) {
+      const filePath = path.join(buildDir, file);
+      if (!fs.existsSync(filePath)) {
+        console.warn(`⚠️  Warning: ${file} not found in build output`);
+      } else {
+        console.log(`✓ Found ${file} in build output`);
+      }
+    }
 
     console.log('\n✅ Build completed successfully!');
     process.exit(0);

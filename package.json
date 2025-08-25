@@ -34,9 +34,8 @@
   },
   "scripts": {
     "start": "set PORT=3006 && set WDS_SOCKET_PORT=0 && react-scripts start",
-    "prebuild": "node fix-imports.js",
     "build": "react-scripts build",
-    "vercel-build": "npm run build",
+    "vercel-build": "node vercel-build.js",
     "postbuild": "node postbuild.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
