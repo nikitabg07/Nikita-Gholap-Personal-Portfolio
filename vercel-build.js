@@ -2,80 +2,56 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-console.log('Starting Vercel build process...');
-
-// Set environment variables
-process.env.PUBLIC_URL = '/';
-process.env.NODE_ENV = 'production';
-process.env.GENERATE_SOURCEMAP = 'false';
-
-// Cross-platform exec function with better error handling
-const exec = (command, options = {}) => {
-  console.log(`$ ${command}`);
+// Helper function to run commands
+function exec(command) {
   try {
-    const result = execSync(command, { 
-      stdio: 'inherit',
-      ...options,
-      env: { 
-        ...process.env,
-        ...options.env,
-        PUBLIC_URL: '/',
-        NODE_ENV: 'production'
-      }
-    });
-    return result ? result.toString() : '';
+    console.log(`$ ${command}`);
+    const output = execSync(command, { stdio: 'inherit' });
+    return { success: true, output };
   } catch (error) {
-    console.error(`Command failed: ${command}`);
-    console.error(error.message);
-    throw error;
+    console.error('❌ Command failed:', command);
+    console.error(error.stderr?.toString() || error.message);
+    return { success: false, error };
   }
-};
+}
 
-// Main build process
-(async () => {
-  try {
-    // Clean up any existing build
-    const buildDir = path.join(process.cwd(), 'build');
-    if (fs.existsSync(buildDir)) {
-      console.log('\n🧹 Cleaning up existing build directory...');
-      await exec('npx rimraf build');
-    }
+console.log('Starting Vercel build process...\n');
 
-    // Install only production dependencies
-    console.log('\n🔧 Installing production dependencies...');
-    await exec('npm ci --prefer-offline --no-audit --progress=false');
+// Step 1: Clean up any previous builds
+console.log('🧹 Cleaning up previous builds...');
+if (fs.existsSync(path.join(process.cwd(), 'build'))) {
+  fs.rmSync(path.join(process.cwd(), 'build'), { recursive: true, force: true });
+}
 
-    // Run the build directly without any hooks
-    console.log('\n🏗️  Running production build...');
-    await exec('npx react-scripts build --no-pre-build');
-    
-    // Verify build output
-    console.log('\n🔍 Verifying build output...');
-    if (!fs.existsSync(buildDir)) {
-      throw new Error('Build directory not found after build!');
-    }
-    
-    // List build directory contents for debugging
-    console.log('\n📁 Build directory contents:');
-    const files = fs.readdirSync(buildDir);
-    console.log(files);
-    
-    // Check for essential files
-    const essentialFiles = ['index.html', 'static'];
-    for (const file of essentialFiles) {
-      const filePath = path.join(buildDir, file);
-      if (!fs.existsSync(filePath)) {
-        console.warn(`⚠️  Warning: ${file} not found in build output`);
-      } else {
-        console.log(`✓ Found ${file} in build output`);
-      }
-    }
+// Step 2: Install production dependencies
+console.log('🔧 Installing production dependencies...');
+let result = exec('npm ci --only=production');
+if (!result.success) {
+  console.error('❌ Failed to install production dependencies');
+  process.exit(1);
+}
 
-    console.log('\n✅ Build completed successfully!');
-    process.exit(0);
-  } catch (error) {
-    console.error('\n❌ Build failed with error:');
-    console.error(error);
-    process.exit(1);
+// Step 3: Run the build directly
+console.log('\n🏗️  Running build...');
+result = exec('npx react-scripts build');
+if (!result.success) {
+  console.error('❌ Build failed. Additional information:');
+  
+  // Check if build directory exists
+  const buildDir = path.join(process.cwd(), 'build');
+  if (!fs.existsSync(buildDir)) {
+    console.error('\n❌ Build directory not found!');
   }
-})();
+  
+  // Check for common build errors
+  const buildLogPath = path.join(process.cwd(), 'npm-debug.log');
+  if (fs.existsSync(buildLogPath)) {
+    console.log('\n📋 Build log:');
+    console.log(fs.readFileSync(buildLogPath, 'utf8'));
+  }
+  
+  process.exit(1);
+}
+
+console.log('\n✅ Build completed successfully!');
+console.log('   You can deploy the contents of the "build" directory to your hosting provider.');
