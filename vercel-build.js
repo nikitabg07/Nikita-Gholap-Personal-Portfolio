@@ -38,9 +38,9 @@ const exec = (command, options = {}) => {
     console.log('\n🔧 Installing dependencies...');
     await exec('npm install --prefer-offline --no-audit --progress=false');
 
-    // Run the build
+    // Run the build directly without prebuild step
     console.log('\n🏗️  Running build...');
-    await exec('npm run build');
+    await exec('react-scripts build');
     
     // Verify build output
     console.log('\n🔍 Verifying build output...');
