@@ -22,7 +22,7 @@ const projects = [
   {
     title: "Small Bizz – Local Business Management",
     description: "A platform for small businesses to manage their operations, inventory, and customer relationships. Features include order tracking, inventory management, and customer analytics.",
-    tech: "React.js, Node.js, Express.js, MongoDB, Redux",
+    tech: "HTML, CSS, JavaScript",
     image: getImageUrl('project/smallbizz.png'),
     style: { objectPosition: 'center', backgroundColor: '#f8fafc' },
     link: "#"
